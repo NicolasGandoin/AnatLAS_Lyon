@@ -1093,6 +1093,77 @@ body {
   font-weight: 600;
 }
 
+/* Bouton Révéler la légende (Œil) */
+.item-reveal-btn,
+.row-tool-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-dim, #94a3b8);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: var(--radius-sm, 8px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.25rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+
+.item-reveal-btn:hover,
+.row-tool-btn:hover {
+  color: #38bdf8;
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+  transform: scale(1.06);
+}
+
+.item-reveal-btn:active,
+.row-tool-btn:active {
+  background: rgba(14, 165, 233, 0.25);
+  transform: scale(0.94);
+}
+
+.item-reveal-btn svg,
+.row-tool-btn svg,
+.reveal-eye-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  display: block;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+/* État quand l'item est révélé */
+.quiz-item-row.is-revealed .item-reveal-btn {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #a5b4fc;
+}
+
+.quiz-item-row.is-revealed .item-reveal-btn:hover {
+  background: rgba(99, 102, 241, 0.28);
+  color: #fff;
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+/* État quand l'item est correct (sans avoir été révélé) */
+.quiz-item-row.is-correct:not(.is-revealed) .item-reveal-btn {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
 .item-feedback-container {
   display: flex;
   flex-direction: column;
