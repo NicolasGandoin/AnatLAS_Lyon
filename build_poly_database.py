@@ -115,8 +115,89 @@ def generate_accepted(label):
             clean_set.add(v_c)
     return list(clean_set)
 
+HEAD_NOUNS_AND_ABBREVIATIONS = {
+    # Abréviations médicales
+    'n', 'nn', 'm', 'mm', 'a', 'aa', 'v', 'vv', 'vx', 'lig', 'ligg', 'r', 'rr', 'br', 'proc', 'art', 'tub',
+    # Os et repères osseux cardinaux
+    'tête', 'tete', 'col', 'tubérosité', 'tuberosite', 'tubercule', 'processus', 'apophyse', 
+    'épicondyle', 'epicondyle', 'condyle', 'incisure', 'échancrure', 'echancrure', 'trochlée', 'trochlee', 
+    'capitulum', 'olécrâne', 'olecrane', 'patella', 'fémur', 'femur', 'tibia', 'fibula', 
+    'humérus', 'humerus', 'radius', 'ulna', 'cubitus', 'scapula', 'omoplate', 'clavicule', 
+    'sternum', 'côte', 'cote', 'vertèbre', 'vertebre', 'sacrum', 'coccyx', 'carpe', 'tarse', 
+    'métacarpe', 'metacarpe', 'métatarse', 'metatarse', 'phalange', 'trochanter', 'malléole', 
+    'malleole', 'acromion', 'crête', 'crete', 'épine', 'epine', 'diaphyse', 'épiphyse', 
+    'epiphyse', 'métaphyse', 'metaphyse', 'os', 'calvaria', 'voûte', 'voute', 'facette',
+    # Articulations & ligaments
+    'ligament', 'ligaments', 'capsule', 'synoviale', 'ménisque', 'menisque', 
+    'labrum', 'bourrelet', 'disque', 'tendon', 'gaine', 'bourse', 'fascia', 'aponévrose', 
+    'aponevrose', 'syssarcose', 'articulation',
+    # Muscles
+    'muscle', 'muscles', 'chef', 'ventre', 'faisceau',
+    # Vaisseaux & nerfs
+    'artère', 'artere', 'artères', 'arteres', 'veine', 'veines', 
+    'nerf', 'nerfs', 'rameau', 'rameaux', 'branche', 'branches', 
+    'tronc', 'troncs', 'plexus', 'arcade', 'conduit', 'canal', 'canaux', 'vaisseau', 'vaisseaux', 
+    'sinus', 'hiatus', 'foramen', 'orifice', 'nœud', 'noeud', 'ganglion', 'racine',
+    # Organes & régions
+    'atrium', 'ventricule', 'valve', 'valvule', 'aorte', 'apex', 'fosse', 'fossette', 
+    'gouttière', 'gouttiere', 'sillon', 'cavité', 'cavite', 'cartilage', 'face', 'bord', 
+    'angle', 'lobe', 'lobule', 'hile', 'pédicule', 'pedicule', 'péritoine', 'peritoine', 
+    'plèvre', 'plevre', 'poumon', 'trachée', 'trachee', 'bronche', 'larynx', 'pharynx', 
+    'œsophage', 'oesophage', 'estomac', 'duodénum', 'duodenum', 'jéjunum', 'jejunum', 
+    'iléon', 'ileon', 'côlon', 'colon', 'rectum', 'foie', 'vésicule', 'vesicule', 
+    'pancréas', 'pancreas', 'rate', 'rein', 'uretère', 'uretere', 'urètre', 'uretre', 
+    'vessie', 'ovaire', 'trompe', 'utérus', 'uterus', 'vagin', 'testicule', 'prostate', 
+    'pénis', 'penis', 'moelle', 'encéphale', 'encephale', 'cerveau', 'cervelet', 
+    'bulbe', 'pont', 'thalamus', 'mésencéphale', 'mesencephale', 'gyrus', 'scissure', 'méninge'
+}
+
+def is_new_legend_start(cand_text):
+    clean = cand_text.strip()
+    if not clean:
+        return True
+    # 1. Puce, tiret, astérisque, numéro
+    if re.match(r'^[•\*\d+\.\-\>]|\(\d+\)', clean):
+        return True
+    # 2. Abréviation anatomique ou substantif cardinal au début
+    first_token = re.split(r'[\s\.\-]+', clean)[0].lower()
+    if first_token in HEAD_NOUNS_AND_ABBREVIATIONS:
+        return True
+    return False
+
+def should_merge(curr_text, cand_text, v_dist, h_overlap, width_curr, width_cand, cx_dist):
+    # 1. Règle horizontale stricte : même colonne obligatoire
+    min_w = min(width_curr, width_cand)
+    if h_overlap < min_w * 0.35 or cx_dist > 30:
+        return False
+
+    # 2. Règle verticale stricte : interligne très serré
+    if v_dist < -4 or v_dist > 8:
+        return False
+
+    # 3. RÈGLE D'OR : UNE FLÈCHE = UNE LÉGENDE !
+    # Si la ligne candidate commence une nouvelle légende distincte, INTERDICTION FORMELLE DE FUSIONNER !
+    if is_new_legend_start(cand_text):
+        return False
+
+    # CAS A : Trait d'union alphabétique en fin de ligne (ex: 'processus -' ou 'fosse supra-')
+    if re.search(r'[a-zA-ZÀ-ÿ]-$', curr_text.strip()):
+        return True
+
+    # CAS B : La ligne suivante commence par une préposition ou parenthèse
+    cand_low = cand_text.lower().strip()
+    if re.match(r'^(de\s+|du\s+|des\s+|de\s+la\s+|d[\'’]|et\s+|en\s+|vers\s+|pour\s+|\()', cand_low):
+        return True
+
+    # CAS C : La première ligne est un substantif court (ex: 'incisure' ou 'M. COURT' ou 'surface articulaire')
+    # et la ligne suivante est son qualificatif adjectival (ex: 'trochléaire', 'ADDUCTEUR', 'carpienne')
+    if len(curr_text.split()) <= 2:
+        return True
+
+    return False
+
 def merge_stacked_boxes(boxes):
-    """Fusionne les étiquettes multi-lignes qui se superposent verticalement"""
+    """Fusionne UNIQUEMENT les morceaux d'une même légende coupée sur 2 lignes.
+       Respecte strictement la règle : Une flèche = Une légende."""
     sorted_boxes = sorted(boxes, key=lambda b: (b['y0'], b['x0']))
     merged = []
     used = set()
@@ -134,23 +215,24 @@ def merge_stacked_boxes(boxes):
                 h_overlap = min(curr_x1, cand['x1']) - max(curr_x0, cand['x0'])
                 width_curr = curr_x1 - curr_x0
                 width_cand = cand['x1'] - cand['x0']
+                cx_dist = abs((cand['x0'] + cand['x1'])/2 - (curr_x0 + curr_x1)/2)
                 
-                # Alignement vertical rapproché et superposition horizontale
-                if 0 <= v_dist <= 10 and (h_overlap > min(width_curr, width_cand) * 0.35 or abs(cand['x0'] - curr_x0) < 20):
-                    # Vérifier si c'est une suite de mot ou minuscule
-                    if curr_text.endswith('-') or (cand['text'] and (cand['text'][0].islower() or cand['text'].startswith('('))):
-                        if curr_text.endswith('-'):
-                            curr_text = curr_text[:-1] + cand['text']
+                if should_merge(curr_text, cand['text'], v_dist, h_overlap, width_curr, width_cand, cx_dist):
+                    if curr_text.endswith('-'):
+                        if curr_text.endswith(' -'):
+                            curr_text = curr_text[:-2].strip() + ' ' + cand['text']
                         else:
-                            curr_text = curr_text + ' ' + cand['text']
-                        curr_x0 = min(curr_x0, cand['x0'])
-                        curr_y0 = min(curr_y0, cand['y0'])
-                        curr_x1 = max(curr_x1, cand['x1'])
-                        curr_y1 = max(curr_y1, cand['y1'])
-                        used.add(j)
-                        j += 1
-                        continue
-                if cand['y0'] - curr_y1 > 18:
+                            curr_text = curr_text[:-1].strip() + cand['text']
+                    else:
+                        curr_text = curr_text + ' ' + cand['text']
+                    curr_x0 = min(curr_x0, cand['x0'])
+                    curr_y0 = min(curr_y0, cand['y0'])
+                    curr_x1 = max(curr_x1, cand['x1'])
+                    curr_y1 = max(curr_y1, cand['y1'])
+                    used.add(j)
+                    j += 1
+                    continue
+                elif v_dist > 15:
                     break
             j += 1
         merged.append({'text': curr_text, 'x0': curr_x0, 'y0': curr_y0, 'x1': curr_x1, 'y1': curr_y1})
@@ -290,9 +372,18 @@ for p_idx in range(len(doc)):
             parts = line.rsplit("||", 1)
             text, coords = parts[0].strip(), parts[1].strip()
             
-            # Filtre des mentions d'orientation et bruit
+            # Filtre des mentions d'orientation, bruit et watermarks
             text_low = text.lower()
-            if any(k in text_low for k in ["vue antérieure", "vue postérieure", "vue latérale", "vue supérieure", "vue inférieure", "vue de face", "face antérieure", "face postérieure", "tutorat", "mineure santé", "page "]):
+            if any(k in text_low for k in [
+                "elsevier", "drake et al", "studentconsult", "gray's anatomy", "grav's anatomy",
+                "vue antérieure", "vue postérieure", "vue latérale", "vue supérieure", "vue inférieure",
+                "vue de face", "face antérieure", "face postérieure", "tutorat", "mineure santé", "page "
+            ]):
+                continue
+            # Filtrer les pavés de légende de figures du type "Figure 4. Anatomie du canal tarsien..."
+            if (text_low.startswith("figure ") or text_low.startswith("fig. ")) and len(text) > 30:
+                continue
+            if text.count(';') >= 2 or len(re.findall(r'\b\d+\.\s*', text)) >= 2:
                 continue
             if len(text) < 2 or text.isdigit():
                 continue
