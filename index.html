@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Anat'PASS — Entraîneur de Schémas d'Anatomie (Polycopié PASS)</title>
+  <meta name="description" content="Application interactive d'entraînement et d'apprentissage par cœur des schémas d'anatomie du polycopié PASS/Médecine.">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Anat'PASS">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'><path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg>">
+  <link rel="stylesheet" href="style.css?v=2.0">
+</head>
+<body class="dark-theme">
+
+  <!-- TOP APP BAR -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            <circle cx="12" cy="12" r="9" stroke-width="1.8" stroke-dasharray="2 3"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Anat'<span>PASS</span></h1>
+          <span class="brand-badge">POLY 2025-2026 • UE5</span>
+        </div>
+      </div>
+
+      <!-- Planche Selector -->
+      <div class="planche-selector-wrapper">
+        <button id="planche-dropdown-btn" class="planche-dropdown-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span class="current-planche-label">
+            <strong id="header-planche-num">Schéma 1</strong>
+            <span id="header-planche-title" class="truncate">Chargement...</span>
+          </span>
+          <svg class="chevron-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div id="planche-dropdown-menu" class="planche-dropdown-menu" hidden>
+          <div class="dropdown-search-box">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+            </svg>
+            <input type="text" id="dropdown-search-input" placeholder="Rechercher un schéma, un os, un muscle..." autocomplete="off">
+          </div>
+
+          <!-- Filtres rapides par Chapitre -->
+          <div class="chapter-chips-bar" id="chapter-chips-bar" role="tablist" aria-label="Filtrer par chapitre">
+            <button class="chapter-chip active" data-chapter="all">Tous</button>
+            <button class="chapter-chip" data-chapter="1">1. Membre sup.</button>
+            <button class="chapter-chip" data-chapter="2">2. Membre inf.</button>
+            <button class="chapter-chip" data-chapter="3">3. Squelette axial</button>
+            <button class="chapter-chip" data-chapter="4">4. Respiratoire</button>
+            <button class="chapter-chip" data-chapter="5">5. Cardio-vasc.</button>
+            <button class="chapter-chip" data-chapter="6">6. Digestif</button>
+            <button class="chapter-chip" data-chapter="7">7. Urinaire</button>
+            <button class="chapter-chip" data-chapter="8">8. Repro. fém.</button>
+            <button class="chapter-chip" data-chapter="9">9. Repro. masc.</button>
+            <button class="chapter-chip" data-chapter="10">10. Neuro</button>
+          </div>
+
+          <div id="planche-list" class="planche-list">
+            <!-- Planche items injected via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Center: View Mode Segmented Control & Global Stats -->
+    <div class="header-center">
+      <!-- Mode d'affichage tablette / desktop -->
+      <div class="view-mode-toggle" id="view-mode-toggle" role="tablist" aria-label="Mode d'affichage">
+        <button type="button" class="view-mode-btn" data-view="diagram" role="tab" aria-selected="false" title="Afficher uniquement le schéma en grand format">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
+          <span class="view-mode-text">Schéma</span>
+        </button>
+        <button type="button" class="view-mode-btn active" data-view="split" role="tab" aria-selected="true" title="Afficher le schéma et le test côte à côte">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h4V3H5zm6 0v14h4a2 2 0 002-2V5a2 2 0 00-2-2h-4z"/></svg>
+          <span class="view-mode-text">Partagé</span>
+        </button>
+        <button type="button" class="view-mode-btn" data-view="quiz" role="tab" aria-selected="false" title="Afficher uniquement les questions et la saisie">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/></svg>
+          <span class="view-mode-text">Test</span>
+        </button>
+      </div>
+
+      <div class="global-progress-capsule" id="open-stats-btn" title="Voir le tableau de bord de révision">
+        <div class="progress-ring-mini">
+          <svg viewBox="0 0 36 36">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path id="global-ring-fill" class="circle-fill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span id="global-percent-text">0%</span>
+        </div>
+        <div class="capsule-text">
+          <span class="capsule-label">Progression</span>
+          <span id="global-mastered-text" class="capsule-val">0 maîtrisés</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Right: Quick Controls -->
+    <div class="header-right">
+      <button id="toggle-sound-btn" class="icon-btn" title="Activer / Couper le son" aria-label="Son">
+        <svg id="sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <svg id="sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden>
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
+
+      <button id="toggle-help-btn" class="icon-btn" title="Raccourcis clavier & aide tactile" aria-label="Aide">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </button>
+
+      <!-- Navigation Arrows in Header -->
+      <div class="header-nav-group">
+        <button id="prev-planche-header-btn" class="nav-step-btn" title="Schéma précédent (Alt + ←)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+        <button id="next-planche-header-btn" class="nav-step-btn" title="Schéma suivant (Alt + →)">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE : SPLIT SCREEN / TABLET MODES -->
+  <main class="workspace-container" id="workspace-container" data-view="split">
+    
+    <!-- LEFT PANEL: ANATOMICAL DIAGRAM VIEWER -->
+    <section class="panel diagram-panel" aria-label="Schéma Anatomique">
+      <div class="panel-header">
+        <div class="panel-title-area">
+          <div class="panel-tag-group">
+            <span class="panel-tag" id="diagram-chapter-badge">CHAPITRE 1</span>
+            <span class="panel-page-tag" id="diagram-page-badge">Page 10</span>
+          </div>
+          <h2 id="diagram-title">Schéma 1 : Titre</h2>
+          <p id="diagram-subtitle" class="diagram-subtitle">Sous-titre et structure</p>
+        </div>
+
+        <div class="diagram-toolbar">
+          <!-- Toggle Schéma Masqué vs Original Légendé -->
+          <button id="toggle-orig-schema-btn" class="tool-btn toggle-schema-mode-btn" title="Basculer entre le schéma de test (numéroté) et le schéma original (légendé)">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+            <span id="orig-schema-btn-text">Voir l'original</span>
+          </button>
+
+          <button id="zoom-out-btn" class="tool-btn" title="Zoom arrière (-)">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <span id="zoom-level-text" class="zoom-display">100%</span>
+          <button id="zoom-in-btn" class="tool-btn" title="Zoom avant (+)">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <button id="zoom-reset-btn" class="tool-btn" title="Ajuster à la vue (Espace)">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5 4a1 1 0 00-2 0v3a1 1 0 001 1h3a1 1 0 000-2H5V4zM15 4a1 1 0 00-1 1v2a1 1 0 001 1h3a1 1 0 000-2h-2V4a1 1 0 00-1-1zM4 13a1 1 0 00-1 1v3a1 1 0 002 0v-2h2a1 1 0 000-2H4zM16 13a1 1 0 00-2 0v2h-2a1 1 0 000 2h3a1 1 0 001-1v-3z"/>
+            </svg>
+          </button>
+          <button id="fullscreen-btn" class="tool-btn" title="Plein écran">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Diagram Viewport with Pan & Zoom -->
+      <div id="diagram-viewport" class="diagram-viewport">
+        <div id="diagram-canvas" class="diagram-canvas">
+          <img id="diagram-img" src="" alt="Schéma d'anatomie" draggable="false">
+        </div>
+        <div class="viewport-hints">
+          <span>💡 Molette pour zoomer • Glisser pour déplacer</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: INTERACTIVE TEST & INPUTS -->
+    <section class="panel quiz-panel" aria-label="Légende et saisie">
+      
+      <!-- Quiz Panel Header / Score bar -->
+      <div class="quiz-status-header">
+        <div class="planche-score-box">
+          <div class="score-numbers">
+            <span class="score-title">Score Schéma :</span>
+            <span class="score-highlight"><span id="planche-score-val">0</span> / <span id="planche-total-val">0</span></span>
+            <span id="planche-status-badge" class="status-badge status-empty">Non commencé</span>
+          </div>
+          <div class="progress-bar-track">
+            <div id="planche-progress-fill" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="quiz-actions-bar">
+          <button id="reveal-all-btn" class="action-btn action-secondary" title="Afficher toutes les réponses pour réviser">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Tout révéler</span>
+          </button>
+          
+          <button id="reset-planche-btn" class="action-btn action-danger" title="Effacer tous les champs et recommencer">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+            </svg>
+            <span>Recommencer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contrôle de rigueur des réponses -->
+      <div class="rigor-mode-bar">
+        <div class="rigor-mode-info">
+          <span class="rigor-title">Mode de correction :</span>
+        </div>
+        <div class="rigor-mode-toggle" role="group" aria-label="Contrôle de rigueur des réponses">
+          <button type="button" id="btn-mode-strict" class="rigor-btn active" data-mode="strict" title="Mode Concours PASS : Seul le terme officiel exact est validé. Les synonymes sont signalés pour apprendre la vraie définition.">
+            <span class="rigor-btn-icon">🎯</span>
+            <span class="rigor-btn-text">Strict PASS</span>
+          </button>
+          <button type="button" id="btn-mode-tolerant" class="rigor-btn" data-mode="tolerant" title="Mode Tolérant : Les synonymes anatomiques sont acceptés avec affichage du rappel officiel.">
+            <span class="rigor-btn-icon">📖</span>
+            <span class="rigor-btn-text">Tolérant + Rappel</span>
+          </button>
+        </div>
+      </div>
+      <div id="rigor-help-banner" class="rigor-help-banner banner-strict">
+        🎯 <strong>Mode Strict PASS actif :</strong> Seules les désignations officielles du polycopié sont validées.
+      </div>
+
+      <!-- Scrollable Form Container -->
+      <div id="quiz-form-container" class="quiz-form-container">
+        <!-- Sections and input rows injected dynamically by JavaScript -->
+      </div>
+
+      <!-- Quiz Panel Footer : Navigation -->
+      <div class="quiz-panel-footer">
+        <button id="prev-planche-btn" class="btn-nav">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span>Précédent</span>
+        </button>
+        <span class="keyboard-hint"><kbd>Entrée</kbd> pour valider et passer au suivant</span>
+        <button id="next-planche-btn" class="btn-nav">
+          <span>Suivant</span>
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL : STATS DASHBOARD -->
+  <div id="stats-modal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <span class="modal-icon">📊</span>
+          <h3>Tableau de bord de révision</h3>
+        </div>
+        <button id="close-stats-btn" class="modal-close-btn" aria-label="Fermer">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-overview-grid">
+          <div class="stat-kpi-card">
+            <span class="kpi-value" id="stats-total-planches">0</span>
+            <span class="kpi-label">Schémas au total</span>
+          </div>
+          <div class="stat-kpi-card highlight-green">
+            <span class="kpi-value" id="stats-mastered-planches">0</span>
+            <span class="kpi-label">Schémas maîtrisés (100%)</span>
+          </div>
+          <div class="stat-kpi-card highlight-yellow">
+            <span class="kpi-value" id="stats-in-progress-planches">0</span>
+            <span class="kpi-label">En cours d'apprentissage</span>
+          </div>
+          <div class="stat-kpi-card">
+            <span class="kpi-value" id="stats-total-terms-found">0</span>
+            <span class="kpi-label">Termes trouvés</span>
+          </div>
+        </div>
+
+        <div class="chapter-stats-breakdown" id="chapter-stats-breakdown">
+          <!-- Breakdown par chapitre généré dynamiquement -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL : RACCOURCIS & AIDE -->
+  <div id="help-modal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-with-icon">
+          <span class="modal-icon">⌨️</span>
+          <h3>Raccourcis & Gestes tactiles</h3>
+        </div>
+        <button id="close-help-btn" class="modal-close-btn" aria-label="Fermer">✕</button>
+      </div>
+      <div class="modal-body help-body">
+        <h4>Sur Ordinateur (Clavier & Souris)</h4>
+        <div class="shortcuts-grid">
+          <div class="shortcut-item"><kbd>Entrée</kbd><span>Valide la réponse et passe automatiquement au numéro suivant</span></div>
+          <div class="shortcut-item"><kbd>↓</kbd> / <kbd>↑</kbd><span>Navigue entre les champs de saisie</span></div>
+          <div class="shortcut-item"><kbd>Alt</kbd> + <kbd>→</kbd><span>Schéma suivant</span></div>
+          <div class="shortcut-item"><kbd>Alt</kbd> + <kbd>←</kbd><span>Schéma précédent</span></div>
+          <div class="shortcut-item"><kbd>Molette</kbd><span>Zoomer / dézoomer sur le schéma</span></div>
+          <div class="shortcut-item"><kbd>Espace</kbd><span>Réinitialiser le zoom du schéma</span></div>
+          <div class="shortcut-item"><kbd>Échap</kbd><span>Fermer le menu déroulant ou la fenêtre</span></div>
+        </div>
+
+        <h4>Sur Tablette (iPad / Android)</h4>
+        <ul class="touch-hints-list">
+          <li><strong>Pincer pour zoomer :</strong> Utilisez deux doigts pour zoomer sur les détails anatomiques.</li>
+          <li><strong>Glisser à 1 doigt :</strong> Déplacez le schéma facilement sans faire défiler la page.</li>
+          <li><strong>Bouton « Voir l'original » :</strong> Permet d'afficher la légende d'origine pour vérifier vos réponses.</li>
+          <li><strong>Touche bleue Suivant ↵ :</strong> Valide le champ et avance au suivant sans fermer le clavier virtuel.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charger le jeu de données embarqué puis l'application -->
+  <script src="data/planches.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
