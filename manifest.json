@@ -1,7 +1,7 @@
 {
-  "name": "Anat'PASS — Entraîneur de Schémas d'Anatomie UE5",
-  "short_name": "Anat'PASS",
-  "description": "Application interactive d'entraînement et d'apprentissage par cœur des schémas d'anatomie PASS/Médecine.",
+  "name": "Anat'LAS Lyon — Entraîneur de Schémas d'Anatomie PASS",
+  "short_name": "Anat'LAS Lyon",
+  "description": "Application interactive d'entraînement et d'apprentissage par cœur des 390 schémas d'anatomie du polycopié PASS Lyon Est.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0e17",

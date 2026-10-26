@@ -1,6 +1,6 @@
-# 🩺 Anat'PASS Poly — Entraîneur de Schémas d'Anatomie (UE5 / P.A.S.S.)
+# 🩺 Anat'LAS Lyon — Entraîneur de Schémas d'Anatomie (Polycopié PASS Lyon Est)
 
-Application interactive conçue pour l'apprentissage par cœur et la révision rapide de l'intégralité des schémas d'anatomie du **Polycopié de cours (LAS / PASS Mineure Santé 2025-2026)**.
+Application interactive moderne conçue pour l'apprentissage par cœur et l'entraînement intensif sur l'intégralité des **390 schémas d'anatomie** du **Polycopié officiel de cours (PASS / L.AS Lyon Est — UE5)**.
 
 ---
 
